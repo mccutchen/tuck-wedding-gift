@@ -9,56 +9,37 @@ HORIZONTAL = 0
 VERTICAL = 1
 DIAGONAL = 2
 
-# how much can each color vary from the previous?
-MAX_DELTA = 10
 
-# how far back does a color bounce when it gets too large or small?
-BOUNCINESS = 2.2
-
-
-def sloppycolor(base=None):
-    """
-    Produces a random color optionally based on the given base color, supplied
-    as a 3-tuple like (red, green, blue) where red green and blue are between 0
-    and 255.
-    """
-    if base is None:
-        return (random.randint(0, 255),
-                random.randint(0, 255),
-                random.randint(0, 255),
-                255)
-    r, g, b, a = base
-    return (validate(r + getdelta(MAX_DELTA)),
-            validate(g + getdelta(MAX_DELTA)),
-            validate(b + getdelta(MAX_DELTA)),
-            a)
+def random_color():
+    return (random.randint(0, 255),
+            random.randint(0, 255),
+            random.randint(0, 255))
 
 
-def validate(component):
-    """
-    Ensures that component (which represents the red, green or blue component
-    of a color) is between 0 and 255.  If a given component is too large or too
-    small, it is 'bounced' back the other way by an amount controlled by the
-    bounciness parameter.
-    """
-    assert isinstance(component, int)
-
-    if 0 <= component < 256:
-        return component
-
-    delta = 0
-    if component > 255:
-        delta = int((255 - component) * BOUNCINESS)
-    elif component < 0:
-        delta = int(-component * BOUNCINESS)
-    return component + delta
+def validate_channel(channel, bounciness=2.2):
+    if 0 <= channel <= 255:
+        return channel
+    if channel > 255:
+        delta = (255 - channel) * bounciness
+    else:
+        delta = channel * -bounciness
+    return channel + int(delta)
 
 
-def getdelta(max):
-    """
-    return a random delta value that is between -max and max
-    """
-    return random.randint(-max, max)
+def get_delta(max_delta):
+    return random.randint(-max_delta, max_delta)
+
+
+def fudge_color((r, g, b), max_delta=10):
+    return (validate_channel(r + get_delta(max_delta)),
+            validate_channel(g + get_delta(max_delta)),
+            validate_channel(b + get_delta(max_delta)))
+
+
+def make_color_stream(color):
+    while True:
+        yield color
+        color = fudge_color(color)
 
 
 def lines(direction, width, height):
@@ -74,23 +55,20 @@ def lines(direction, width, height):
     image = Image.new('RGB', size)
     draw = ImageDraw.Draw(image)
 
-    c = sloppycolor()
+    color_stream = make_color_stream(random_color())
     if direction == VERTICAL:
         for i in range(0, width):
-            c = sloppycolor(c)
-            draw.line((i, 0) + (i, height), c)
+            draw.line((i, 0) + (i, height), next(color_stream))
     elif direction == HORIZONTAL:
         for i in range(0, height):
-            c = sloppycolor(c)
-            draw.line((0, i) + (width, i), c)
+            draw.line((0, i) + (width, i), next(color_stream))
     elif direction == DIAGONAL:
         for i in range(0, maxdimension):
-            c = sloppycolor(c)
             x1 = min(i, maxdimension)
             y1 = max(0, i - maxdimension)
             x2 = max(0, i - maxdimension)
             y2 = min(i, maxdimension)
-            draw.line((x1, y1, x2, y2), c)
+            draw.line((x1, y1, x2, y2), next(color_stream))
         image = image.crop((0, 0, width, height))
     return image
 
