@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 
+import itertools
 import random
 import sys
 from PIL import Image, ImageDraw
-
-
-HORIZONTAL = 0
-VERTICAL = 1
-DIAGONAL = 2
 
 
 def random_color():
@@ -16,14 +12,11 @@ def random_color():
             random.randint(0, 255))
 
 
-def validate_channel(channel, bounciness=2.2):
-    if 0 <= channel <= 255:
-        return channel
-    if channel > 255:
-        delta = (255 - channel) * bounciness
-    else:
-        delta = channel * -bounciness
-    return channel + int(delta)
+def validate_channel(chan, bounce=2.2):
+    if 0 <= chan <= 255:
+        return chan
+    delta = (255 - chan) * bounce if chan > 255 else chan * -bounce
+    return chan + int(delta)
 
 
 def get_delta(max_delta):
@@ -42,40 +35,25 @@ def make_color_stream(color):
         color = fudge_color(color)
 
 
-def lines(direction, width, height):
+def lines(width, height):
     maxdimension = max(width, height) * 2
-    if direction == DIAGONAL:
-        # if we're generating a slanted image, we have to make it twice as big
-        # as the largest requested dimension and then crop it, so the lines
-        # come out right
-        size = (maxdimension, maxdimension)
-    else:
-        size = (width, height)
+    size = (maxdimension, maxdimension)
 
     image = Image.new('RGB', size)
     draw = ImageDraw.Draw(image)
-
     color_stream = make_color_stream(random_color())
-    if direction == VERTICAL:
-        for i in range(0, width):
-            draw.line((i, 0) + (i, height), next(color_stream))
-    elif direction == HORIZONTAL:
-        for i in range(0, height):
-            draw.line((0, i) + (width, i), next(color_stream))
-    elif direction == DIAGONAL:
-        for i in range(0, maxdimension):
-            x1 = min(i, maxdimension)
-            y1 = max(0, i - maxdimension)
-            x2 = max(0, i - maxdimension)
-            y2 = min(i, maxdimension)
-            draw.line((x1, y1, x2, y2), next(color_stream))
-        image = image.crop((0, 0, width, height))
-    return image
+
+    for i, color in itertools.izip(xrange(0, maxdimension), color_stream):
+        x1 = min(i, maxdimension)
+        y1 = max(0, i - maxdimension)
+        x2 = max(0, i - maxdimension)
+        y2 = min(i, maxdimension)
+        draw.line((x1, y1, x2, y2), color)
+    return image.crop((0, 0, width, height))
 
 
 def main():
-    image = lines(DIAGONAL, 500, 500)
-    image.save(sys.stdout, 'PNG')
+    lines(500, 500).save(sys.stdout, 'PNG')
     return 0
 
 
