@@ -52,10 +52,14 @@ def lines(width, height):
     return image.crop((0, 0, width, height))
 
 
-def main():
-    lines(500, 500).save(sys.stdout, 'PNG')
+def main(width, height):
+    lines(width, height).save(sys.stdout, 'PNG')
     return 0
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    if len(sys.argv) == 3:
+        width, height = map(int, sys.argv[1:])
+    else:
+        width, height = 600, 400
+    sys.exit(main(width, height))
