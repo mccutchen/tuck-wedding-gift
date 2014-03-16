@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 base_name="gift-$(date +%s)"
 lines_out="/tmp/$base_name-lines.png"
 triangulized_out="/tmp/$base_name-triangulized.png"
