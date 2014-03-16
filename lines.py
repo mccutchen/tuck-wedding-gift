@@ -7,11 +7,8 @@ import sys
 from PIL import Image, ImageDraw
 
 
-seed_color = (39, 54, 175)
-seed_color = (99, 157, 61)
-
-seed_rgb = tuple(x / 255.0 for x in seed_color)
-seed_hsv = colorsys.rgb_to_hsv(*seed_rgb)
+def prep_seed_color(rgb):
+    return colorsys.rgb_to_hsv(*[x / 255.0 for x in rgb])
 
 
 def hsv_to_rgb(hsv):
@@ -47,25 +44,35 @@ def make_color_stream(color):
         color = fudge_color(color)
 
 
-def lines(width, height):
+def lines(width, height, seed_colors):
     maxdimension = max(width, height) * 2
     size = (maxdimension, maxdimension)
 
     image = Image.new('RGB', size)
     draw = ImageDraw.Draw(image)
-    color_stream = make_color_stream(seed_hsv)
 
-    for i, color in itertools.izip(xrange(0, maxdimension), color_stream):
+    num_segments = len(seed_colors)
+    segment_width = (width + height) / num_segments
+    color_streams = [make_color_stream(c) for c in seed_colors]
+
+    for i in xrange(0, maxdimension):
+        quotient, remainder = divmod(i, segment_width)
+        color_stream = color_streams[quotient % num_segments]
         x1 = min(i, maxdimension)
         y1 = max(0, i - maxdimension)
         x2 = max(0, i - maxdimension)
         y2 = min(i, maxdimension)
-        draw.line((x1, y1, x2, y2), hsv_to_rgb(color))
+        draw.line((x1, y1, x2, y2), hsv_to_rgb(next(color_stream)))
     return image.crop((0, 0, width, height))
 
 
 def main(width, height):
-    lines(width, height).save(sys.stdout, 'PNG')
+    seed_colors = [
+        (39, 54, 175), # blue
+        (99, 157, 61), # green
+    ]
+    image = lines(width, height, map(prep_seed_color, seed_colors))
+    image.save(sys.stdout, 'PNG')
     return 0
 
 
