@@ -1,4 +1,10 @@
 #!/bin/sh
 
-outpath="/tmp/gift-$(date +%s).png"
-python lines.py 1000 500 > $outpath && open $outpath
+base_name="gift-$(date +%s)"
+lines_out="/tmp/$base_name-lines.png"
+triangulized_out="/tmp/$base_name-triangulized.png"
+
+python lines.py 1000 500 > $lines_out
+cat $lines_out | triangulizor -t 25 > $triangulized_out
+
+open $lines_out $triangulized_out
