@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
+import argparse
 import colorsys
 import itertools
 import random
 import sys
-from PIL import Image, ImageDraw
+from PIL import Image, ImageColor, ImageDraw
 
 
-def prep_seed_color(rgb):
+def prep_seed_color(raw_color):
+    rgb = ImageColor.getrgb(raw_color)
     return colorsys.rgb_to_hsv(*[x / 255.0 for x in rgb])
 
 
 def hsv_to_rgb(hsv):
-    rgb = tuple(int(x * 255) for x in colorsys.hsv_to_rgb(*hsv))
-    assert all(0 <= x < 256 for x in rgb), rgb
-    return rgb
+    return tuple(int(x * 255) for x in colorsys.hsv_to_rgb(*hsv))
 
 
 def validate_channel(chan, min_val=0.0, max_val=1.0, bounce=1.01):
@@ -66,19 +66,20 @@ def lines(width, height, seed_colors):
     return image.crop((0, 0, width, height))
 
 
-def main(width, height):
-    seed_colors = [
-        (39, 54, 175), # blue
-        (99, 157, 61), # green
-    ]
-    image = lines(width, height, map(prep_seed_color, seed_colors))
+def main(width, height, seed_colors):
+    image = lines(width, height, seed_colors)
     image.save(sys.stdout, 'PNG')
     return 0
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 3:
-        width, height = map(int, sys.argv[1:])
-    else:
-        width, height = 600, 400
-    sys.exit(main(width, height))
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('--width', type=int, required=True)
+    arg_parser.add_argument('--height', type=int, required=True)
+    arg_parser.add_argument(
+        '--color', type=str, action='append', dest='seed_color',
+        required=True, help='A seed color (may be repeated)')
+
+    args = arg_parser.parse_args()
+    seed_colors = map(prep_seed_color, args.seed_color)
+    sys.exit(main(args.width, args.height, seed_colors))

@@ -3,10 +3,8 @@
 set -e
 
 base_name="gift-$(date +%s)"
-lines_out="/tmp/$base_name-lines.png"
-triangulized_out="/tmp/$base_name-triangulized.png"
+lines_out="output/$base_name-lines.png"
 
-python lines.py 1000 500 > $lines_out
-cat $lines_out | triangulizor -t 25 > $triangulized_out
+python lines.py --width=2000 --height=1000 --color=#03162e --color=#377b4e > $lines_out
 
-open $lines_out $triangulized_out
+open $lines_out
