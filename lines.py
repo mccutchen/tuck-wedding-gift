@@ -33,9 +33,9 @@ def get_delta(max_delta):
 
 
 def fudge_color((h, s, v)):
-    return (validate_channel(h + get_delta(0.005)),
-            validate_channel(s + get_delta(0.01)),
-            validate_channel(v + get_delta(0.025)))
+    return (validate_channel(h + get_delta(0.0005)),
+            validate_channel(s + get_delta(0.005)),
+            validate_channel(v + get_delta(0.005)))
 
 
 def make_color_stream(color):

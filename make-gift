@@ -5,6 +5,6 @@ set -e
 base_name="gift-$(date +%s)"
 lines_out="output/$base_name-lines.png"
 
-python lines.py --width=2000 --height=1000 --color=#03162e --color=#377b4e > $lines_out
+python lines.py --width=10800 --height=7200 --color=#094fb1 --color=#0c601e > $lines_out
 
 open $lines_out
