@@ -1,0 +1,4 @@
+#!/bin/sh
+
+outpath="/tmp/gift-$(date +%s).png"
+python lines.py 1000 500 > $outpath && open $outpath
