@@ -2,9 +2,19 @@
 
 set -e
 
-base_name="gift-$(date +%s)"
-lines_out="output/$base_name-lines.png"
+width=10800
+height=3600
+outdir="output/${width}x${height}-$(date +%s)"
+mkdir -p "$outdir"
 
-python lines.py --width=10800 --height=7200 --color=#094fb1 --color=#0c601e > $lines_out
+function make_gift() {
+    color="$1"
+    outpath="$outdir/${color:1}.png"
+    echo "Generating lines in $outpath..."
+    python lines.py --width=$width --height=$height --color=$color > "$outpath"
+}
 
-open $lines_out
+make_gift "#094fb1"
+make_gift "#0c601e"
+
+open "$outdir"/*.png
